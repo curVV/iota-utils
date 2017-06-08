@@ -1,0 +1,227 @@
+#!/bin/sh
+
+
+# URI for node's REST API
+# Will be used if --node-uri not specified
+node_api_uri="http://localhost:14600"
+
+
+# User and password if node requires authentication
+# Will be used if --basic-auth option not specified
+# Do not leave blank (whether auth required or not)
+# format: "user:password"
+node_basic_auth="user:password"
+
+
+
+##############################################
+#### NO REAL NEED TO EDIT BELOW THIS LINE ####
+####         (UNLESS YOU WANT TO)         ####
+##############################################
+
+
+result="{\"result\":\"error\"}"
+
+paste_result_url=""
+paste_service="dpaste"
+paste_data=""
+
+args="$*"
+cmd="$1"
+cmd_arg="$2"
+
+user_option_node_api_uri="$(echo $args | sed -rn 's/.*(--node-uri=)([^ ]*).*/\2/p')"
+user_option_node_basic_auth="$(echo $args | sed -rn 's/.*(--basic-auth=)([^ ]*).*/\2/p')"
+user_option_paste_result="$(echo $args | sed -rn 's/.*(--paste)([^ ]*).*/\1/p')"
+user_option_paste_noob="$(echo $args | sed -rn 's/.*(--paste-noob)([^ ]*).*/\1/p')"
+user_option_show_help="$(echo $args | sed -rn 's/.*(--help)([^ ]*).*/\1/p')"
+
+
+# Substitute defaults for user set option values
+if [ "$user_option_node_api_uri" ];then
+    node_api_uri="$user_option_node_api_uri"
+fi
+if [ "$user_option_node_basic_auth" ];then
+    node_basic_auth="$user_option_node_basic_auth"
+fi
+
+
+# List of accepted commands
+declare -A cmds
+cmds=(
+    ["getNodeInfo"]=""
+    ["getNeighbors"]=""
+    ["addNeighbor"]="\"uris\":[\"${cmd_arg}\"]"
+    ["removeNeighbor"]="\"uris\":[\"${cmd_arg}\"]"
+)
+
+# Command alias map
+declare -A cmd_aliases
+cmd_aliases=(
+    [1]="getNodeInfo"
+    [2]="getNeighbors"
+    [3]="addNeighbor"
+    [4]="removeNeighbor"
+)
+
+
+# Show help message
+function show_help(){
+    echo "Usage: ${0##*/} command [command-arg] [options]"
+    echo " "
+    echo "Commands"
+    echo "  1|getNodeInfo                   Get node info"
+    echo "  2|getNeighbors                  Get neighbor info"
+    echo "  3|addNeighbor <neighbor>        Add neighbor"
+    echo "  4|removeNeighbor <neighbor>     Remove neighbor"
+    echo ""
+    echo "Options:"
+    echo "  --node-uri      Specify node uri"
+    echo "                  example: --node-uri=http://192.168.1.1:14600"
+    echo "                  (default: change it to your liking at top of this script)"
+    echo "  --basic-auth    Http basic auth credentials, if required by the node"
+    echo "                  example: --basic-auth=user:password"
+    echo "                  (default: change it to your liking at top of this script)"
+    echo "  --paste         Paste result to remote paste bin (${paste_service})"
+    echo "  --paste-noob    Paste result to remote paste bin (${paste_service})"
+    echo "                  Same as --paste but does not hide addresses and sets"
+    echo "                  expire to 'once off' (expires after first view)"
+    echo "  --help          Print this help message"
+    echo ""
+    echo "Examples:"
+    echo "  Get neighbours from a specific (other than default) node:"
+    echo "      ${0##*/} getNeighbors --node-uri=http://anoherhost:1700"
+    echo "  Using numeric alias/shortcut for getting default node's neighbours:"
+    echo "      ${0##*/} 2"
+    echo "  Get default node info and paste results to paste bin:"
+    echo "      ${0##*/} 1 --paste     (same as: ${0##*/} getNodeInfo --paste)"
+    if [ ! $(command -v jq) >/dev/null 2>&1 ]; then
+        echo ""
+        echo "NOTE: jq is not installed. Install it for nicer output."
+    fi
+    exit 0
+}
+
+
+# Check is asked for help
+if [ "$user_option_show_help" ]; then
+    show_help
+fi
+
+
+# Check for valid commands
+function check_commands(){
+    # Check for a number alias
+    case $cmd in
+        ''|*[!1-4]*) ;;
+        *) cmd="${cmd_aliases[$cmd]}";;
+    esac
+
+    # Check for valid ommands
+    for c in "${!cmds[@]}"; do
+        if [ "$cmd" == "$c" ]; then
+            return
+        fi
+    done
+    show_help
+}
+
+
+# Mask addresses
+function mask_neighbour_addresses(){
+
+    paste_data=$(echo "${paste_data}" | sed -E 's/(.*\"address\": \")([^ ]+):([0-9]+)(\",.*)/\1xxxxxxxxxx:\3\4/g')
+    
+}
+
+
+function build_command(){
+
+    # Set base command
+    local api_command="{\"command\":\"${cmd}\"}"
+
+    # Add command extensions/args
+    if [ "${cmds[$cmd]}" ]; then
+        if [ -z "$cmd_arg" ]; then
+            show_help
+        fi
+        api_command="${api_command}, ${cmds[$cmd]}"
+    fi
+
+    return "${api_command}"
+}
+
+
+# Do the request
+function make_request(){
+
+    # Get command
+    local api_command=build_command
+
+    # Set result
+    result=$(
+        curl "${node_api_uri}" \
+        -u "$node_basic_auth" \
+        -X POST \
+        -H 'Content-Type: application/json' \
+        -d "$api_command" \
+        -s
+    )
+}
+
+
+# Paste contents
+function paste_result(){
+    
+    # Check if address masking is disabled
+    if [ -z "$user_option_paste_noob" ]; then
+        mask_neighbour_addresses
+        local expires="3600"
+    else
+        local expires="onetime"
+    fi
+
+    # Paste the result
+    local paste_result_url=$(
+        curl 'https://dpaste.de/api/' \
+        -F "content=${paste_data}" \
+        -F 'lexer=json' \
+        -F 'format=url' \
+        -F "expires=${expires}" \
+        -s
+    )
+
+    if [ "$paste_data" ]; then
+        echo ""
+        echo "${paste_result_url}"
+    else
+        echo "Error: Nothing to paste"
+    fi
+}
+
+
+check_commands
+
+make_request
+
+
+if [ $(command -v jq) >/dev/null 2>&1 ]; then
+    if [ "$user_option_paste_result" ]; then
+        # The dot (.) is a filter that takes its input and 
+        # produces it unchanged as output. Without it. jq cries.
+        paste_data=$(echo "${result}" | jq .)
+        paste_result
+    else
+        # No dot (.) here is the difference to the line above.
+        echo "${result}" | jq
+    fi
+else
+    if [ "$user_option_paste_result" ]; then
+        paste_data=$(echo "${result}" | python -m json.tool)
+        paste_result
+    else
+        # Paste data and echo command for using python jsoon.tool
+        # is the same (unlike jq), so echo paste_data. 
+        echo "${paste_data}"
+    fi
+fi
