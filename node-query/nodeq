@@ -30,6 +30,8 @@ args="$*"
 cmd="$1"
 cmd_arg="$2"
 
+api_command=""
+
 user_option_node_api_uri="$(echo $args | sed -rn 's/.*(--node-uri=)([^ ]*).*/\2/p')"
 user_option_node_basic_auth="$(echo $args | sed -rn 's/.*(--basic-auth=)([^ ]*).*/\2/p')"
 user_option_paste_result="$(echo $args | sed -rn 's/.*(--paste)([^ ]*).*/\1/p')"
@@ -138,17 +140,17 @@ function mask_neighbour_addresses(){
 function build_command(){
 
     # Set base command
-    local api_command="{\"command\":\"${cmd}\"}"
+    api_command="{\"command\":\"${cmd}\"}"
 
     # Add command extensions/args
     if [ "${cmds[$cmd]}" ]; then
         if [ -z "$cmd_arg" ]; then
             show_help
         fi
-        api_command="${api_command}, ${cmds[$cmd]}"
+        cmd_arg=", ${cmd_arg}"
+        api_command="${api_command}${cmds[$cmd]}"
+        echo "${api_command}"
     fi
-
-    return "${api_command}"
 }
 
 
@@ -156,15 +158,15 @@ function build_command(){
 function make_request(){
 
     # Get command
-    local api_command=build_command
-
+    build_command
+    
     # Set result
     result=$(
         curl "${node_api_uri}" \
-        -u "$node_basic_auth" \
+        -u "${node_basic_auth}" \
         -X POST \
         -H 'Content-Type: application/json' \
-        -d "$api_command" \
+        -d "${api_command}" \
         -s
     )
 }
