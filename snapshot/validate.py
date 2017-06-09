@@ -32,8 +32,6 @@ def request(options):
         data = options["json"].encode('utf-8')
     else:
         data = None
-    print("DATA: ")
-    print(data)
     request = Request(url=iota_node_url, data=data, headers=headers)
 
     for c in range(1,connect_retries+1):
@@ -227,9 +225,6 @@ def snapshot():
         sys.exit(str(e))
 
     latest_state = data["ixi"]["state"]
-
-    print(latest_state)
-    sys.exit("test")
 
     # FIRST VALIDATION
     # Check if total sum is equal to the supply 2779530283277761
