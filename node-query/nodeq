@@ -54,7 +54,7 @@ cmds=(
     ["getNodeInfo"]=""
     ["getNeighbors"]=""
     ["addNeighbor"]="\"uris\":[\"${cmd_arg}\"]"
-    ["removeNeighbor"]="\"uris\":[\"${cmd_arg}\"]"
+    ["removeNeighbors"]="\"uris\":[\"${cmd_arg}\"]"
 )
 
 # Command alias map
@@ -63,7 +63,7 @@ cmd_aliases=(
     [1]="getNodeInfo"
     [2]="getNeighbors"
     [3]="addNeighbor"
-    [4]="removeNeighbor"
+    [4]="removeNeighbors"
 )
 
 
@@ -147,9 +147,8 @@ function build_command(){
         if [ -z "$cmd_arg" ]; then
             show_help
         fi
-        cmd_arg=", ${cmd_arg}"
-        api_command="${api_command}${cmds[$cmd]}"
-        echo "${api_command}"
+        api_command="{\"command\":\"${cmd}\", ${cmds[$cmd]}}"
+        #echo "${api_command}"
     fi
 }
 
