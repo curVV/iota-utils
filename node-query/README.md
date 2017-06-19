@@ -1,11 +1,11 @@
 # iota-utils
-**nodeq** - simple bash script for quickly viewing node info  
+**nodeq** - quickly query iota nodes  
 
-can also paste results to online paste bin  
-
-POSIX compliant  
+Written in BASH (POSIX compliant)  
 
 Uses jq for nice output. If jq is not installed, Python's json.tool module will be used.  
+
+Able to paste output to online paste bin.  
 
 
 ### install ###
@@ -26,11 +26,11 @@ Make it executable:
 ```
 Usage: nodeq command [command-arg] [options]
 
-Commands
-  1|getNodeInfo                   Get node info
-  2|getNeighbors                  Get neighbor info
-  3|addNeighbor <neighbor>        Add neighbor
-  4|removeNeighbor <neighbor>     Remove neighbor
+Commands:
+  1|getNodeInfo                       Get node info
+  2|getNeighbors                      Get neighbor info
+  3|addNeighbors <neighbor>           Add neighbor
+  4|removeNeighbors <neighbor>        Remove neighbor
 
 Options:
   --node-uri      Specify node uri
@@ -46,11 +46,15 @@ Options:
   --help          Print this help message
 
 Examples:
-  Get neighbours from a specific (other than default) node:
-      nodeq getNeighbors --node-uri=http://anoherhost:1700
-  Using numeric alias/shortcut for getting default node's neighbours:
+  Get neighbours:
       nodeq 2
-  Get default node info and paste results to paste bin:
-      nodeq 1 --paste     (same as: nodeq getNodeInfo --paste)
+      or:
+      nodeq getNeighbors
+  Get node info and paste results to paste bin:
+      nodeq 1 --paste
+      or:
+      nodeq getNodeInfo --paste
+  Get neighbours from a node other than default setting:
+      nodeq 2 --node-uri=http://some.other.node:31415
 
 ```

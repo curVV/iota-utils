@@ -53,7 +53,7 @@ declare -A cmds
 cmds=(
     ["getNodeInfo"]=""
     ["getNeighbors"]=""
-    ["addNeighbor"]="\"uris\":[\"${cmd_arg}\"]"
+    ["addNeighbors"]="\"uris\":[\"${cmd_arg}\"]"
     ["removeNeighbors"]="\"uris\":[\"${cmd_arg}\"]"
 )
 
@@ -62,7 +62,7 @@ declare -A cmd_aliases
 cmd_aliases=(
     [1]="getNodeInfo"
     [2]="getNeighbors"
-    [3]="addNeighbor"
+    [3]="addNeighbors"
     [4]="removeNeighbors"
 )
 
@@ -71,11 +71,11 @@ cmd_aliases=(
 function show_help(){
     echo "Usage: ${0##*/} command [command-arg] [options]"
     echo " "
-    echo "Commands"
-    echo "  1|getNodeInfo                   Get node info"
-    echo "  2|getNeighbors                  Get neighbor info"
-    echo "  3|addNeighbor <neighbor>        Add neighbor"
-    echo "  4|removeNeighbor <neighbor>     Remove neighbor"
+    echo "Commands:"
+    echo "  1|getNodeInfo                       Get node info"
+    echo "  2|getNeighbors                      Get neighbor info"
+    echo "  3|addNeighbors <neighbor>           Add neighbor"
+    echo "  4|removeNeighbors <neighbor>        Remove neighbor"
     echo ""
     echo "Options:"
     echo "  --node-uri      Specify node uri"
@@ -91,12 +91,17 @@ function show_help(){
     echo "  --help          Print this help message"
     echo ""
     echo "Examples:"
-    echo "  Get neighbours from a specific (other than default) node:"
-    echo "      ${0##*/} getNeighbors --node-uri=http://anoherhost:1700"
-    echo "  Using numeric alias/shortcut for getting default node's neighbours:"
+    echo "  Get neighbours:"
     echo "      ${0##*/} 2"
-    echo "  Get default node info and paste results to paste bin:"
-    echo "      ${0##*/} 1 --paste     (same as: ${0##*/} getNodeInfo --paste)"
+    echo "      or:"
+    echo "      ${0##*/} getNeighbors"
+    echo "  Get node info and paste results to paste bin:"
+    echo "      ${0##*/} 1 --paste"
+    echo "      or:"
+    echo "      ${0##*/} getNodeInfo --paste"
+    echo "  Get neighbours from a node other than default setting:"
+    echo "      ${0##*/} 2 --node-uri=http://some.other.node:31415"
+
     if [ ! $(command -v jq) >/dev/null 2>&1 ]; then
         echo ""
         echo "NOTE: jq is not installed. Install it for nicer output."
