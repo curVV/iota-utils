@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Snapshot validation
+# Not tested
 # Was ported from js here: https://github.com/domschiener/iota-snapshot-validation
 
 
