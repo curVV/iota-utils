@@ -1,0 +1,179 @@
+#!/bin/sh
+
+# Default seed size to generate
+seed_size="81"
+
+# Character set to use for seed generation
+seed_charset="A-Z9"
+
+# Time to wait before nuking it all
+sleep_time="21"
+
+######################################################################################
+
+
+args="$*"
+
+has_xsel="yes"
+
+seed=""
+
+# Simple options parsing
+user_option_seed_size="$(echo $args | sed -rn 's/.*(--size=)([^ ]*).*/\2/p')"
+user_option_seed_charset="$(echo $args | sed -rn 's/.*(--charset=)([^ ]*).*/\2/p')"
+user_option_wait="$(echo $args | sed -rn 's/.*(--wait=)([^ ]*).*/\2/p')"
+user_option_show="$(echo $args | sed -rn 's/.*(--show)([^ ]*).*/\1/p')"
+user_option_do_copy="$(echo $args | sed -rn 's/.*(--copy)([^ ]*).*/\1/p')"
+user_option_show_help="$(echo $args | sed -rn 's/.*(--help)([^ ]*).*/\1/p')"
+
+
+# Substitute defaults for user set option values
+if [ "$user_option_seed_size" ];then
+    seed_size="$user_option_seed_size"
+fi
+if [ "$user_option_seed_charset" ];then
+    seed_charset="$user_option_seed_charset"
+fi
+if [ "$user_option_wait" ];then
+    sleep_time="$user_option_wait"
+fi
+
+# Check for xsel
+if [ ! $(command -v xsel) >/dev/null 2>&1 ]; then
+    has_xsel="no"
+fi
+
+
+# Create replace string
+replace_string="$(head -c ${seed_size} < /dev/zero | tr '\0' '\130')"
+
+
+# Show help message
+show_help (){
+    echo "Usage: ${0##*/} [options]"
+    echo ""
+    echo "Options:"
+    echo "  --size          Specify seed size (current default: ${seed_size})"
+    echo "  --charset       Characterset to use for seed generation (current default: ${seed_charset})"
+    echo "  --wait          Time in seconds to wait before nuking (current default: ${sleep_time})"
+    echo "  --copy          Copy seed to clipboard and remove after ${sleep_time} seconds (needs xsel)"
+    echo "  --show          Outputs the seed in clear text to stdout and nothing else"
+    echo "  --help          Print this help message"
+    echo ""
+    echo "Examples:"
+    echo "  Generate seed:"
+    echo "      ${0##*/}"
+    echo "  Generate seed for other than IOTA use:"
+    echo "      ${0##*/} --size=32 --charset=A-Z0-9~_"
+    echo "  Generate and copy seed to clipboard:"
+    echo "      ${0##*/} --copy"
+    echo "  Just print my seed, man:"
+    echo "      ${0##*/} --show"
+
+    if [ "$has_xsel" != "yes" ]; then
+        echo ""
+        echo "NOTE: xsel is not installed. No clipboard operations will be performed."
+    fi
+    exit 0
+}
+
+
+# Clear clipboard contents if matched with or seed
+clear_clipboard (){
+    if [ "$has_xsel" = "yes" ]; then
+        local clipboard_contents="$(xsel --output --clipboard)"
+        if [ "${clipboard_contents}" = "${seed}" ]; then
+            xsel --clear --clipboard
+            printf "Seed cleared from clipboard.\n"
+        fi
+    fi
+}
+
+
+# Copy seed to clipboard
+copy_to_clipboard (){
+    if [ "$has_xsel" = "yes" ]; then
+        echo ${seed} | xsel --input --clipboard
+        if [ "$?" = "0" ]; then
+            printf "Seed copied to clipboard, paste it somewhere safe before use...\n"
+            sleep $sleep_time
+        else
+            printf "An error occurred attempting to copy seed to clipboard.\n"
+            printf "Are you running this script remotely? If so, no clipboard is available.\n"
+            exit 1
+        fi
+    elif [ "$has_xsel" = "no" ]; then
+        printf "Not copying - xsel not installed!\n"
+    fi
+}
+
+
+# Obfuscate seed / clear clipboard and exit
+clean_exit (){
+    if [ "$user_option_do_copy" = "--copy" ]; then
+        clear_clipboard
+    else
+        # Enable user input and obfuscate seed
+        printf "\r${replace_string}\n"
+        stty echo
+    fi
+
+    printf "Goodbye.\n"
+
+    pkill ${0##*/} 2&>1 > /dev/null
+
+    exit 0
+}
+
+
+# Print seed, copy it to clipboard, seek it in clipboard, destroy it.
+print_result_safe (){
+    printf "Seed self-destructs in ${sleep_time} seconds, ctrl-c to self-destruct now.\n"
+    sleep 2
+
+    # Detect keyboard interrupt
+    trap clean_exit SIGINT
+
+    # Only print if not copying to clipboard
+    if [ "$user_option_do_copy" = "--copy" ]; then
+        copy_to_clipboard
+        sleep 1
+
+        clean_exit
+    else
+        printf "Grab it:\n"
+        sleep 1
+
+        # Disable user input and show seed
+        stty -echo
+        printf "${seed}"
+        sleep $sleep_time
+
+        clean_exit
+    fi
+
+}
+
+
+# Print result, no bitching
+print_result (){
+    printf "${seed}\n"
+}
+
+
+# Show help if asked
+if [ "$user_option_show_help" ]; then
+    show_help
+fi
+
+
+# Generate seed
+seed=$(head -c 2048 /dev/urandom | tr -dc ${seed_charset} | head -c ${seed_size})
+
+
+# Print result using specified method
+if [ -z "$user_option_show" ]; then
+    print_result_safe
+else
+    print_result
+fi
