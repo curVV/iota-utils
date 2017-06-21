@@ -68,7 +68,7 @@ cmd_aliases=(
 
 
 # Show help message
-function show_help(){
+show_help(){
     echo "Usage: ${0##*/} command [command-arg] [options]"
     echo " "
     echo "Commands:"
@@ -117,7 +117,7 @@ fi
 
 
 # Check for valid commands
-function check_commands(){
+check_commands(){
     # Check for a number alias
     case $cmd in
         ''|*[!1-4]*) ;;
@@ -135,14 +135,14 @@ function check_commands(){
 
 
 # Mask addresses
-function mask_neighbour_addresses(){
+mask_neighbour_addresses(){
 
     paste_data=$(echo "${paste_data}" | sed -E 's/(.*\"address\": \")([^ ]+):([0-9]+)(\",.*)/\1xxxxxxxxxx:\3\4/g')
     
 }
 
 
-function build_command(){
+build_command(){
 
     # Set base command
     api_command="{\"command\":\"${cmd}\"}"
@@ -159,7 +159,7 @@ function build_command(){
 
 
 # Do the request
-function make_request(){
+make_request(){
 
     # Get command
     build_command
@@ -177,7 +177,7 @@ function make_request(){
 
 
 # Paste contents
-function paste_result(){
+paste_result(){
     
     # Check if address masking is disabled
     if [ -z "$user_option_paste_noob" ]; then
