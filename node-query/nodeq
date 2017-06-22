@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 
 # URI for node's REST API
@@ -124,9 +124,10 @@ check_commands(){
         *) cmd="${cmd_aliases[$cmd]}";;
     esac
 
+
     # Check for valid ommands
     for c in "${!cmds[@]}"; do
-        if [ "$cmd" == "$c" ]; then
+        if [ "$cmd" = "$c" ]; then
             return
         fi
     done
@@ -212,6 +213,7 @@ make_request
 
 
 if [ $(command -v jq) >/dev/null 2>&1 ]; then
+    
     if [ "$user_option_paste_result" ]; then
         # The dot (.) is a filter that takes its input and 
         # produces it unchanged as output. Without it. jq cries.
@@ -221,9 +223,12 @@ if [ $(command -v jq) >/dev/null 2>&1 ]; then
         # No dot (.) here is the difference to the line above.
         echo "${result}" | jq
     fi
+    
 else
+    
+    paste_data=$(echo "${result}" | python -m json.tool)
+    
     if [ "$user_option_paste_result" ]; then
-        paste_data=$(echo "${result}" | python -m json.tool)
         paste_result
     else
         # Paste data and echo command for using python jsoon.tool

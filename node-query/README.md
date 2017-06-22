@@ -5,7 +5,7 @@
 ![GitHub Logo](example.gif)
 
 
-Written in BASH (POSIX compliant)  
+Written in BASH ~(POSIX compliant)~, Does not work with DASH.  
 
 Uses jq for nice output. If jq is not installed, Python's json.tool module will be used.  
 
