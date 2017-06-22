@@ -120,8 +120,6 @@ clean_exit (){
 
     printf "Goodbye.\n"
 
-    pkill ${0##*/} 2&>1 > /dev/null
-
     exit 0
 }
 
