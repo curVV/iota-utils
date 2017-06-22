@@ -132,7 +132,7 @@ print_result_safe (){
     sleep 2
 
     # Detect keyboard interrupt
-    trap clean_exit SIGINT
+    trap clean_exit INT
 
     # Only print if not copying to clipboard
     if [ "$user_option_do_copy" = "--copy" ]; then
