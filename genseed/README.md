@@ -5,7 +5,9 @@
 ![GitHub Logo](example.gif)
 
 
-genseed generates an 81-character seed for use with IOTA wallets by default. The generated seed is either printed to stdout or copied to clipboard and automatically removed after some seconds (unless `--show` option is used) 
+genseed generates an 81-character seed for use with IOTA wallets by default. The generated 
+seed is either printed to stdout or copied to clipboard and automatically removed after some 
+seconds (unless `--show` option is used) 
 \- see script for defaults.
 
 
@@ -16,11 +18,15 @@ If you're just looking for a bash command to generate a seed:
 < /dev/urandom tr -dc A-Z9 | head -c 81;echo
 ```  
 
+**urandom info**  
+https://www.2uo.de/myths-about-urandom/
+
+
 ### Install
 Copy `genseed` anywhere to a location in your PATH (or else run with `./genseed`).  
 Make sure it's executable: `chmod +x genseed`   
 
-Tested on bash and dahs on Gentoo, Arch and Ubuntu.  
+Tested on bash (and dash) on Gentoo, Arch and Ubuntu.  
  
 
 ### Usage
@@ -52,14 +58,10 @@ Examples:
 ```
 
 
-#### urandom info
-https://www.2uo.de/myths-about-urandom/
-
-
 
 ### Clipboard Operations  
  - genseed uses xsel for clipboard operations (copy and clear).
  - Use `genseed --help` to check if it is installed (warning at bottom if not installed).
  - If xsel is not installed, clipboard will not be used.
  - If genseed used over remote login (ssh), clipboard operations will not work.
- - Of CLIPBOARD, PRIMARY and SECONDARY selecions, CLIPBOARD is used.
+ - Of CLIPBOARD, PRIMARY and SECONDARY selections, CLIPBOARD is used.
