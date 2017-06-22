@@ -1,6 +1,10 @@
 # iota-utils
 **nodeq** - quickly query iota nodes  
 
+
+![GitHub Logo](example.gif)
+
+
 Written in BASH (POSIX compliant)  
 
 Uses jq for nice output. If jq is not installed, Python's json.tool module will be used.  
