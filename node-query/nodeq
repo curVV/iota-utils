@@ -171,6 +171,7 @@ make_request(){
         -u "${node_basic_auth}" \
         -X POST \
         -H 'Content-Type: application/json' \
+        -H 'X-IOTA-API-VERSION: 1.4.1' \
         -d "${api_command}" \
         -s
     )
