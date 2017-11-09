@@ -15,7 +15,7 @@ seconds (unless `--show` option is used)
 If you're just looking for a bash command to generate a seed:    
 
 ```bash
-< /dev/urandom tr -dc A-Z9 | head -c 81;echo
+head -c 2048 /dev/urandom | tr -dc A-Z9 | head -c 81; echo
 ```  
 
 **urandom info**  
